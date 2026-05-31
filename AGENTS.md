@@ -4,6 +4,7 @@ This project is about local Wispr or Flow dictation into a remote Mac text box d
 
 Important boundaries:
 
+- Every time you ask the user to run a command, put a one-line shell no-op at the top of the command block with only the computer and account, for example: `: "Computer: Local Mac | Account: rojo"`. Keep it simple, make it copy-paste safe in interactive `zsh`, and do this even when it feels obvious.
 - Treat clipboard sharing as the first gate. Verify plain local copy/paste into the remote Mac before debugging Wispr.
 - Keep Wispr local unless the remote Mac has a real microphone input path.
 - The fallback is keystroke injection from the local clipboard into the active remote-control window.
