@@ -12,7 +12,7 @@ public final class TranscriptWatcher {
     public init(
         store: TranscriptStore,
         pollIntervalSeconds: TimeInterval = 0.25,
-        stabilizationSeconds: TimeInterval = 3.0
+        stabilizationSeconds: TimeInterval = 1.0
     ) {
         self.store = store
         self.pollIntervalNanoseconds = UInt64(max(0.05, pollIntervalSeconds) * 1_000_000_000)
