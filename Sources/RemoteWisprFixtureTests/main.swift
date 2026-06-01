@@ -18,6 +18,7 @@ struct RemoteWisprFixtureTests {
         try testWorkflowCopiesOldestNewTranscript()
         try testWorkflowReportsNoTranscriptAfterMarker()
         try await testWatcherReturnsExistingNewRow()
+        try await testWatcherWaitsForStableTranscriptRow()
         try await testWatcherTimesOutWithoutNewRow()
         try testSQLiteStoreReturnsMaxRowID()
         try testSQLiteStoreReturnsOldestUsableRowAfterMarker()
@@ -65,18 +66,34 @@ struct RemoteWisprFixtureTests {
             TranscriptRow(rowID: 20, text: "before"),
             TranscriptRow(rowID: 21, text: "after")
         ])
-        let watcher = TranscriptWatcher(store: store, pollIntervalSeconds: 0.05)
+        let watcher = TranscriptWatcher(store: store, pollIntervalSeconds: 0.05, stabilizationSeconds: 0)
 
         let row = try await watcher.waitForNext(after: 20, timeoutSeconds: 1)
 
         try expectEqual(row, TranscriptRow(rowID: 21, text: "after"))
     }
 
+    private static func testWatcherWaitsForStableTranscriptRow() async throws {
+        let finalRow = TranscriptRow(rowID: 21, text: "complete transcript", status: "raw_transcript")
+        let store = SequencedTranscriptStore(rowsByCall: [
+            TranscriptRow(rowID: 21, text: "com", status: "raw_transcript"),
+            TranscriptRow(rowID: 21, text: "com", status: "raw_transcript"),
+            finalRow,
+            finalRow,
+            finalRow
+        ])
+        let watcher = TranscriptWatcher(store: store, pollIntervalSeconds: 0.05, stabilizationSeconds: 0.08)
+
+        let row = try await watcher.waitForNext(after: 20, timeoutSeconds: 1)
+
+        try expectEqual(row, finalRow)
+    }
+
     private static func testWatcherTimesOutWithoutNewRow() async throws {
         let store = MemoryTranscriptStore(rows: [
             TranscriptRow(rowID: 20, text: "before")
         ])
-        let watcher = TranscriptWatcher(store: store, pollIntervalSeconds: 0.05)
+        let watcher = TranscriptWatcher(store: store, pollIntervalSeconds: 0.05, stabilizationSeconds: 0)
 
         do {
             _ = try await watcher.waitForNext(after: 20, timeoutSeconds: 0.1)
@@ -271,6 +288,33 @@ private struct FixtureRow {
 
     var timestamp: String {
         "2026-05-29 00:00:\(String(format: "%02d", rowID % 60)) +00:00"
+    }
+}
+
+private final class SequencedTranscriptStore: TranscriptStore {
+    private let rowsByCall: [TranscriptRow?]
+    private var callCount = 0
+
+    init(rowsByCall: [TranscriptRow?]) {
+        self.rowsByCall = rowsByCall
+    }
+
+    func maxRowID() throws -> Int64 {
+        rowsByCall.compactMap(\.?.rowID).max() ?? 0
+    }
+
+    func oldestUsableRow(after rowID: Int64) throws -> TranscriptRow? {
+        defer { callCount += 1 }
+
+        let row = rowsByCall[min(callCount, rowsByCall.count - 1)]
+        guard let row,
+              row.rowID > rowID,
+              !row.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else {
+            return nil
+        }
+
+        return row
     }
 }
 
