@@ -27,6 +27,7 @@ Remote Wispr is currently a source-build alpha. It is intended for technical Mac
 - `docs/spike-2-focus-sync.md`: focus-donor clipboard sync spike instructions.
 - `docs/adapting-targets.md`: notes for adapting the Screen Sharing target layer to other remote-control tools.
 - `docs/public-release.md`: source-build alpha release and public export checklist.
+- `docs/public-maintenance.md`: lightweight process for public fixes, verification, versioning, and local install checks.
 - `Sources/RemoteWisprCore/`: testable Swift core for transcript reading, waiting, and clipboard writing.
 - `Sources/RemoteWisprSpike/`: tiny command-line spike runner for local testing.
 - `Sources/RemoteWisprMenuBar/`: menu bar app for the accepted local Wispr shortcut trigger, donor handoff, cleanup, and paste workflow.
