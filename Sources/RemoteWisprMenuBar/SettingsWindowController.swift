@@ -4,6 +4,12 @@ import RemoteWisprCore
 
 @MainActor
 final class SettingsWindowController: NSWindowController {
+    private static let windowWidth: CGFloat = 660
+    private static let labelX: CGFloat = 8
+    private static let labelWidth: CGFloat = 154
+    private static let controlX: CGFloat = 178
+    private static let rightMargin: CGFloat = 14
+
     var settings: AppSettings {
         didSet {
             loadSettingsIntoFields()
@@ -37,7 +43,7 @@ final class SettingsWindowController: NSWindowController {
         self.onSave = onSave
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 620, height: 510),
+            contentRect: NSRect(x: 0, y: 0, width: Self.windowWidth, height: 510),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -59,7 +65,7 @@ final class SettingsWindowController: NSWindowController {
             return
         }
 
-        let contentView = NSView(frame: window.contentView?.bounds ?? NSRect(x: 0, y: 0, width: 620, height: 450))
+        let contentView = NSView(frame: window.contentView?.bounds ?? NSRect(x: 0, y: 0, width: Self.windowWidth, height: 450))
         contentView.autoresizingMask = [.width, .height]
         window.contentView = contentView
 
@@ -70,7 +76,7 @@ final class SettingsWindowController: NSWindowController {
         configurePathField(donorPathField, y: 400, in: contentView)
 
         addLabel("Timeout Seconds", y: 356, to: contentView)
-        timeoutField.frame = NSRect(x: 160, y: 350, width: 90, height: 24)
+        timeoutField.frame = NSRect(x: Self.controlX, y: 350, width: 90, height: 24)
         timeoutField.placeholderString = "20"
         contentView.addSubview(timeoutField)
 
@@ -87,7 +93,7 @@ final class SettingsWindowController: NSWindowController {
         configureCheckbox(automaticPasteButton, label: "Auto paste", y: 206, in: contentView)
 
         addLabel("Paste Focus Wait", y: 170, to: contentView)
-        autoPasteDelayField.frame = NSRect(x: 160, y: 164, width: 90, height: 24)
+        autoPasteDelayField.frame = NSRect(x: Self.controlX, y: 164, width: 90, height: 24)
         autoPasteDelayField.placeholderString = "0.2"
         contentView.addSubview(autoPasteDelayField)
 
@@ -95,33 +101,38 @@ final class SettingsWindowController: NSWindowController {
         configureCheckbox(remoteCleanupButton, label: "Clean up leaked v", y: 134, in: contentView)
 
         addLabel("Min Hold Seconds", y: 98, to: contentView)
-        hotkeyMinimumHoldField.frame = NSRect(x: 160, y: 92, width: 90, height: 24)
+        hotkeyMinimumHoldField.frame = NSRect(x: Self.controlX, y: 92, width: 90, height: 24)
         hotkeyMinimumHoldField.placeholderString = "0.2"
         contentView.addSubview(hotkeyMinimumHoldField)
 
         let resetButton = NSButton(title: "Reset Defaults", target: self, action: #selector(resetDefaults))
-        resetButton.frame = NSRect(x: 310, y: 18, width: 120, height: 32)
+        resetButton.frame = NSRect(x: 350, y: 18, width: 120, height: 32)
         contentView.addSubview(resetButton)
 
         let saveButton = NSButton(title: "Save", target: self, action: #selector(save))
         saveButton.keyEquivalent = "\r"
-        saveButton.frame = NSRect(x: 450, y: 18, width: 80, height: 32)
+        saveButton.frame = NSRect(x: 490, y: 18, width: 80, height: 32)
         contentView.addSubview(saveButton)
 
         let cancelButton = NSButton(title: "Cancel", target: self, action: #selector(cancel))
-        cancelButton.frame = NSRect(x: 532, y: 18, width: 74, height: 32)
+        cancelButton.frame = NSRect(x: 572, y: 18, width: 74, height: 32)
         contentView.addSubview(cancelButton)
     }
 
     private func addLabel(_ title: String, y: CGFloat, to contentView: NSView) {
         let label = NSTextField(labelWithString: title)
-        label.frame = NSRect(x: 16, y: y, width: 130, height: 20)
+        label.frame = NSRect(x: Self.labelX, y: y, width: Self.labelWidth, height: 20)
         label.alignment = .right
         contentView.addSubview(label)
     }
 
     private func configurePathField(_ field: NSTextField, y: CGFloat, in contentView: NSView) {
-        field.frame = NSRect(x: 160, y: y, width: 446, height: 24)
+        field.frame = NSRect(
+            x: Self.controlX,
+            y: y,
+            width: Self.windowWidth - Self.controlX - Self.rightMargin,
+            height: 24
+        )
         field.lineBreakMode = .byTruncatingMiddle
         contentView.addSubview(field)
     }
@@ -129,7 +140,7 @@ final class SettingsWindowController: NSWindowController {
     private func configureCheckbox(_ button: NSButton, label: String, y: CGFloat, in contentView: NSView) {
         button.title = ""
         button.setAccessibilityLabel(label)
-        button.frame = NSRect(x: 160, y: y, width: 24, height: 24)
+        button.frame = NSRect(x: Self.controlX, y: y, width: 24, height: 24)
         contentView.addSubview(button)
     }
 
@@ -141,7 +152,7 @@ final class SettingsWindowController: NSWindowController {
             commandModifierButton
         ]
         let widths: [CGFloat] = [58, 52, 64, 60]
-        var x: CGFloat = 160
+        var x: CGFloat = Self.controlX
         for (button, width) in zip(buttons, widths) {
             button.frame = NSRect(x: x, y: y, width: width, height: 24)
             contentView.addSubview(button)
